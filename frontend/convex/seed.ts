@@ -3,7 +3,7 @@ import { mutation } from "./_generated/server";
 export const clearAll = mutation({
   args: {},
   handler: async (ctx) => {
-    for (const table of ["customers", "support_tickets", "usage_metrics", "analyses"] as const) {
+    for (const table of ["customers", "support_tickets", "usage_metrics", "analyses", "external_signals"] as const) {
       const rows = await ctx.db.query(table).collect();
       await Promise.all(rows.map((r) => ctx.db.delete(r._id)));
     }

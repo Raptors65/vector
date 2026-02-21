@@ -10,22 +10,25 @@ graph TD
     Convex["Convex<br/>DB + Serverless Actions"]
     MiniMax["MiniMax API<br/>MiniMax-M2.5"]
     Rtrvr["rtrvr.ai<br/>Web Research Agent"]
+    GitHub["GitHub REST API"]
 
     Browser -- "useQuery (WebSocket)" --> Convex
     Browser -- "useAction (HTTP)" --> Convex
     Convex -- "Theme extraction<br/>Spec generation" --> MiniMax
     Convex -- "Market evidence<br/>(pre-demo)" --> Rtrvr
+    Convex -- "External signals<br/>(pre-demo)" --> Rtrvr
     Browser -- "CSV upload<br/>(client-side parse)" --> Browser
     Browser -- "ingestCSVData mutation" --> Convex
+    Browser -- "Issue export<br/>(PAT in localStorage)" --> GitHub
 ```
 
-The frontend never calls external APIs directly. All LLM calls and web research go through Convex actions, which keeps API keys server-side and allows the frontend to react to state changes without polling.
+For almost all external calls, the frontend goes through Convex — keeping API keys server-side and letting the frontend react to state changes without polling. The one exception is GitHub issue export, which is intentionally client-side: the PAT lives in `localStorage` and is never sent to Convex or any server.
 
 ---
 
 ## Data model
 
-Five tables in Convex. No foreign key constraints — relationships are implicit.
+Six tables in Convex. No foreign key constraints — relationships are implicit.
 
 ```mermaid
 erDiagram
@@ -61,6 +64,15 @@ erDiagram
         string company_name
         string finding
         string source
+    }
+
+    external_signals {
+        string source
+        string title
+        string excerpt
+        string url
+        string theme
+        number scraped_at
     }
 
     customers ||--o{ support_tickets : "customer_id (loose ref)"
@@ -174,7 +186,8 @@ graph TD
 
     Page --> Navbar
     Page --> UploadZone_Initial["UploadZone<br/>(initial overlay)"]
-    Page --> UploadModal["UploadModal<br/>(navbar trigger)"]
+    Page --> UploadModal["Modal + UploadZone<br/>(navbar trigger)"]
+    Page --> GitHubModal["GitHubModal<br/>(⚙ navbar trigger)"]
     Page --> LeftPanel
     Page --> CenterPanel
     Page --> RightPanel
@@ -188,10 +201,14 @@ graph TD
     CenterPanel --> EvidenceSection["EvidenceSection<br/>(shown when complete)"]
     CenterPanel --> SpecPreview["SpecPreview<br/>(shown when complete)"]
 
-    UploadModal --> UploadZone_Modal["UploadZone<br/>(modal instance)"]
+    SpecPreview --> GitHubExportButton["GitHubExportButton<br/>(shown when complete)"]
+    GitHubModal --> Modal["Modal<br/>(shared shell)"]
+    UploadModal --> Modal
 ```
 
 `CenterPanel` manages a `phase` state (`idle → running → done → content`) that determines which of `AnalysisAnimation` and the results stack is visible. Both are always mounted; opacity transitions between them.
+
+`Modal` is a shared shell component (backdrop + card + ✕ button) used by both `UploadModal` and `GitHubModal`.
 
 ---
 
@@ -221,6 +238,53 @@ File type is detected by inspecting the CSV header row — no filename matching 
 
 ---
 
+## Signal feed: three sources
+
+The left panel merges three independent signal types into a single ranked feed, sorted by ARR descending (web signals, which have no ARR, appear at the bottom).
+
+```mermaid
+graph TD
+    A["customers table<br/>(churned = true)"] --> D["signals.list query"]
+    B["support_tickets table"] --> D
+    C["external_signals table"] --> D
+    D --> E["SignalFeed<br/>Left Panel"]
+
+    style A fill:#27272a,stroke:#52525b,color:#fff
+    style B fill:#27272a,stroke:#52525b,color:#fff
+    style C fill:#27272a,stroke:#52525b,color:#fff
+    style D fill:#27272a,stroke:#52525b,color:#fff
+```
+
+| Badge | Source | ARR shown | Clickable |
+|---|---|---|---|
+| `CHURN` (red) | `customers` — churned with reason | Yes | No |
+| `SIGNAL` (zinc) | `support_tickets` | Yes | No |
+| `WEB` (blue) | `external_signals` — Reddit, HN, G2 | No | Yes (links to source) |
+
+### External signals: live vs. seeded
+
+External signals are pre-seeded with 5 hardcoded posts covering the SSO theme. They can optionally be replaced with live rtrvr.ai results before a demo.
+
+```mermaid
+graph LR
+    A["scrapeExternalSignals action<br/>(optional, run pre-demo)"]
+    B["rtrvr.ai /agent"]
+    C["external_signals table"]
+    D["seedExternalSignals mutation<br/>(fallback, runs via reset.sh)"]
+    E["SignalFeed"]
+
+    A -- "theme query" --> B
+    B -- "5-8 posts" --> A
+    A -- "replace rows" --> C
+    D -- "5 hardcoded posts" --> C
+    C -- "signals.list()" --> E
+
+    style A fill:#27272a,stroke:#52525b,color:#fff
+    style D fill:#27272a,stroke:#52525b,color:#fff
+```
+
+---
+
 ## Market evidence: live vs. cached
 
 rtrvr.ai web research runs as a separate action (`refreshEvidence`) so it can be pre-cached with the freshest results before a session. This keeps the main analysis pipeline fast while ensuring the evidence cards always reflect up-to-date market data.
@@ -244,3 +308,55 @@ graph LR
 ```
 
 If `refreshEvidence` hasn't been run, the table falls back to seed data (Linear, Notion, Figma SAML SSO examples seeded by `seedMarketEvidence`).
+
+---
+
+## GitHub issue export
+
+The only feature that calls an external API directly from the browser. This is intentional — the GitHub PAT is stored in `localStorage` and must never be sent to Convex or any server.
+
+```mermaid
+sequenceDiagram
+    actor User
+    participant Browser
+    participant LocalStorage
+    participant GitHub as GitHub REST API
+
+    User->>Browser: Click "Export to GitHub →"
+    Browser->>LocalStorage: loadConfig() — read PAT + owner + repo
+    Browser->>Browser: buildStories(spec) — flatten task_graph epics → stories
+    Browser->>Browser: Show confirmation (N issues, M epics)
+
+    User->>Browser: Confirm Export
+    Browser->>GitHub: GET /repos/{owner}/{repo}/labels/vector
+    alt label missing
+        Browser->>GitHub: POST /repos/{owner}/{repo}/labels
+    end
+
+    loop for each story
+        Browser->>GitHub: POST /repos/{owner}/{repo}/issues
+        GitHub-->>Browser: {html_url}
+        Browser->>Browser: onProgress(done, total, currentTitle)
+        Note over Browser: 200ms delay between calls
+    end
+
+    Browser->>Browser: Show success + link to issues page
+```
+
+### Issue structure
+
+Each story in the spec's `task_graph` becomes one GitHub issue:
+
+- **Title**: `[Epic name] Story title`
+- **Body**: Context block (feature name + ARR at risk) + subtask checklist + epic name
+- **Label**: `vector` (auto-created on first export)
+
+Epics are not created as issues — they appear as a `[Epic: X]` prefix in the title, making them filterable in GitHub.
+
+### Error handling
+
+| HTTP status | Shown to user |
+|---|---|
+| 401 | "Invalid or expired token. Check your GitHub settings." |
+| 404 | "Repository not found. Check the owner and repo name." |
+| Network error | Count of issues created before failure + retry option |

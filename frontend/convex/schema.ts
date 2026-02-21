@@ -28,6 +28,15 @@ export default defineSchema({
     source: v.string(),
   }),
 
+  external_signals: defineTable({
+    source: v.string(),
+    title: v.string(),
+    excerpt: v.string(),
+    url: v.optional(v.string()),
+    theme: v.string(),
+    scraped_at: v.number(),
+  }),
+
   analyses: defineTable({
     status: v.union(
       v.literal("idle"),

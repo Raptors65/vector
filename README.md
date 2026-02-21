@@ -2,18 +2,20 @@
 
 **Autonomous Product Strategy Engine** — upload your customer data, run an AI analysis, and get a prioritized build recommendation backed by revenue impact and market evidence.
 
+> The demo runs as **Meridian** — a fictional Series A project management SaaS for engineering teams. See [`plans/demo-company.md`](plans/demo-company.md) for the full company brief.
+
 ---
 
 ## What it does
 
-Vector ingests three data sources — churned customer records, support tickets, and feature adoption metrics — and runs a multi-step AI pipeline to answer: *what should we build next, and why?*
+Vector ingests three signal sources — churned customer records, support tickets, and web signals from Reddit/HN/G2 — and runs a multi-step AI pipeline to answer: *what should we build next, and why?*
 
 1. **Extracts themes** from churn reasons, ticket text, and usage gaps, weighted by ARR
 2. **Computes revenue exposure** — how much ARR is at risk, and how much could be recovered
 3. **Researches market evidence** — real examples of how other B2B SaaS companies handled the same decision
 4. **Generates an engineering spec** — schema changes, API endpoints, UI updates, and a full task graph ready to hand to engineers
 
-Results are shown in a live war-room dashboard with three panels: signal feed, strategic core (analysis + spec), and revenue exposure model.
+Results are shown in a live war-room dashboard with three panels: signal feed (churn + tickets + web signals), strategic core (analysis + spec), and revenue exposure model.
 
 ---
 
@@ -71,12 +73,13 @@ CONVEX_DEPLOYMENT=your_deployment_slug
 NEXT_PUBLIC_CONVEX_URL=https://your-deployment.convex.cloud
 ```
 
-### 4. Seed market evidence
+### 4. Seed fallback data
 
-Pre-populate the fallback evidence cards (used when rtrvr.ai hasn't been run):
+Pre-populate the market evidence cards and external web signals (used when rtrvr.ai hasn't been run):
 
 ```bash
 npx convex run seed:seedMarketEvidence
+npx convex run externalSignals:seedExternalSignals
 ```
 
 ### 5. Start the dev server
@@ -116,6 +119,18 @@ Click **Run Analysis** in the center panel. The pipeline takes ~60–90 seconds 
 
 Use the **Recovery Assumption** selector in the right panel (Conservative / Moderate / Aggressive) to model different retention scenarios. Numbers update instantly.
 
+### Export to GitHub
+
+Once analysis is complete, the spec can be exported directly to GitHub as issues — one issue per story, with subtasks as a Markdown checklist in the body.
+
+1. Click the **⚙** icon in the navbar to open GitHub settings
+2. Enter a Personal Access Token (needs `repo` scope), owner, and repository name — stored in `localStorage`, never sent to any server
+3. Click **Export to GitHub →** at the bottom of the spec
+4. Confirm the issue count and click **Confirm Export**
+5. Watch the live progress indicator as issues are created, then follow the link to the repo
+
+A `vector` label is automatically created in the target repo if it doesn't exist, making all generated issues easy to filter.
+
 ---
 
 ## Demo reset
@@ -126,7 +141,7 @@ To wipe all data and return to the upload screen:
 ./reset.sh
 ```
 
-This clears all customer, ticket, usage, and analysis data, then re-seeds the market evidence fallback. Run it from the repo root.
+This clears all customer, ticket, usage, and analysis data, then re-seeds the market evidence and external signals fallbacks. Run it from the repo root.
 
 You can also upload new data at any time without resetting — click the **↑ Upload data** button in the navbar.
 
@@ -141,12 +156,17 @@ vector/
 │   │   ├── components/
 │   │   │   ├── AnalysisAnimation.tsx  # ASCII canvas animation during analysis
 │   │   │   ├── CenterPanel.tsx        # Strategic core — analysis, spec, evidence
-│   │   │   ├── LeftPanel.tsx          # Signal feed — churn + tickets
+│   │   │   ├── GitHubExportButton.tsx # Export flow: confirm → progress → success
+│   │   │   ├── GitHubModal.tsx        # GitHub settings modal (PAT + owner + repo)
+│   │   │   ├── LeftPanel.tsx          # Signal feed — churn + tickets + web
+│   │   │   ├── Modal.tsx              # Shared modal shell (backdrop + card + ✕)
 │   │   │   ├── RightPanel.tsx         # Revenue exposure model
 │   │   │   ├── SegmentSummary.tsx     # Enterprise/SMB ARR + churn rate tiles
 │   │   │   ├── SignalFeed.tsx         # Scrollable signal cards
 │   │   │   ├── SpecPreview.tsx        # Collapsible engineering spec accordion
 │   │   │   └── UploadZone.tsx         # CSV upload + integration cards
+│   │   ├── lib/
+│   │   │   └── github.ts             # GitHub REST API helpers + exportSpec()
 │   │   ├── animation-test/            # Test page for the ASCII animation
 │   │   ├── page.tsx                   # Root layout + war room shell
 │   │   └── globals.css
@@ -155,7 +175,8 @@ vector/
 │       ├── analysis.ts                # AI pipeline (MiniMax + rtrvr.ai)
 │       ├── analyses.ts                # Analysis CRUD
 │       ├── customers.ts               # Customer queries
-│       ├── signals.ts                 # Merged churn + ticket feed
+│       ├── signals.ts                 # Merged churn + ticket + web signal feed
+│       ├── externalSignals.ts         # Web signal CRUD + seed
 │       ├── marketEvidence.ts          # Evidence CRUD
 │       ├── usageMetrics.ts            # Feature adoption queries
 │       ├── upload.ts                  # CSV ingestion mutation
@@ -174,3 +195,21 @@ npx convex run analysis:refreshEvidence '{"topTheme":"Enterprise SSO"}'
 ```
 
 Replace `"Enterprise SSO"` with whatever theme your data surfaces.
+
+---
+
+## External web signals
+
+The signal feed includes web signals scraped from Reddit, Hacker News, and G2 — real posts asking for or complaining about the absence of a feature in B2B SaaS tools. These corroborate the internal churn and ticket signals from a completely independent source.
+
+Fallback seed data (5 hardcoded posts) is included and runs automatically via `reset.sh`. To re-seed manually:
+
+```bash
+npx convex run externalSignals:seedExternalSignals
+```
+
+To pull live results from rtrvr.ai for a specific theme (optional, requires credits):
+
+```bash
+npx convex run externalSignals:scrapeExternalSignals '{"topTheme":"Enterprise SSO"}'
+```

@@ -11,6 +11,7 @@
 import type * as analyses from "../analyses.js";
 import type * as analysis from "../analysis.js";
 import type * as customers from "../customers.js";
+import type * as externalSignals from "../externalSignals.js";
 import type * as marketEvidence from "../marketEvidence.js";
 import type * as seed from "../seed.js";
 import type * as signals from "../signals.js";
@@ -27,6 +28,7 @@ declare const fullApi: ApiFromModules<{
   analyses: typeof analyses;
   analysis: typeof analysis;
   customers: typeof customers;
+  externalSignals: typeof externalSignals;
   marketEvidence: typeof marketEvidence;
   seed: typeof seed;
   signals: typeof signals;

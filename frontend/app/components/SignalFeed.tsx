@@ -30,49 +30,79 @@ export function SignalFeed() {
 
   return (
     <div className="flex flex-col gap-2">
-      {signals.map((signal) => (
-        <div
-          key={signal.id}
-          className={`rounded-none p-3 border ${
-            signal.type === "churn"
-              ? "border-red-900/50 bg-red-950/20"
-              : "border-zinc-800 bg-zinc-900/40"
-          }`}
-        >
-          <div className="flex items-center justify-between mb-1">
-            <div className="flex items-center gap-1.5">
-              <span
-                className={`inline-block w-1.5 h-1.5 shrink-0 ${
-                  signal.type === "churn" ? "bg-red-400" : "bg-zinc-500"
-                }`}
-              />
-              {signal.type === "ticket" && (
-                <span className="text-xs font-mono font-bold text-zinc-500">
-                  SIGNAL
+      {signals.map((signal) => {
+        const isChurn = signal.type === "churn";
+        const isWeb = signal.type === "web";
+        const card = (
+          <div
+            key={signal.id}
+            className={`rounded-none p-3 border ${
+              isChurn
+                ? "border-red-900/50 bg-red-950/20"
+                : isWeb
+                ? "border-zinc-800/60 bg-zinc-900/20"
+                : "border-zinc-800 bg-zinc-900/40"
+            }`}
+          >
+            <div className="flex items-center justify-between mb-1">
+              <div className="flex items-center gap-1.5">
+                <span
+                  className={`inline-block w-1.5 h-1.5 shrink-0 ${
+                    isChurn ? "bg-red-400" : isWeb ? "bg-blue-500" : "bg-zinc-500"
+                  }`}
+                />
+                {signal.type === "ticket" && (
+                  <span className="text-xs font-mono font-bold text-zinc-500">
+                    SIGNAL
+                  </span>
+                )}
+                {isWeb && (
+                  <span className="text-xs font-mono font-bold text-blue-500/70">
+                    WEB
+                  </span>
+                )}
+                {signal.company && (
+                  <span className="text-white text-xs font-medium">
+                    {signal.company}
+                  </span>
+                )}
+                {isWeb && signal.source && (
+                  <span className="text-zinc-600 text-xs">{signal.source}</span>
+                )}
+                {signal.segment && (
+                  <span className="text-zinc-600 text-xs">{signal.segment}</span>
+                )}
+              </div>
+              {signal.arr != null && (
+                <span
+                  className={`text-xs font-mono font-medium ${
+                    isChurn ? "text-red-400" : "text-zinc-400"
+                  }`}
+                >
+                  {formatARR(signal.arr)}
                 </span>
-              )}
-              {signal.company && (
-                <span className="text-white text-xs font-medium">
-                  {signal.company}
-                </span>
-              )}
-              {signal.segment && (
-                <span className="text-zinc-600 text-xs">{signal.segment}</span>
               )}
             </div>
-            <span
-              className={`text-xs font-mono font-medium ${
-                signal.type === "churn" ? "text-red-400" : "text-zinc-400"
-              }`}
-            >
-              {formatARR(signal.arr)}
-            </span>
+            <p className="text-zinc-400 text-xs leading-relaxed line-clamp-2">
+              {signal.text}
+            </p>
           </div>
-          <p className="text-zinc-400 text-xs leading-relaxed line-clamp-2">
-            {signal.text}
-          </p>
-        </div>
-      ))}
+        );
+
+        return isWeb && signal.url ? (
+          <a
+            key={signal.id}
+            href={signal.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="block hover:opacity-80 transition-opacity"
+          >
+            {card}
+          </a>
+        ) : (
+          <div key={signal.id}>{card}</div>
+        );
+      })}
     </div>
   );
 }
