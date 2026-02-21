@@ -15,7 +15,18 @@ function formatPercent(rate: number): string {
 export function SegmentSummary() {
   const summary = useQuery(api.customers.segmentSummary);
 
-  if (!summary) return null;
+  if (!summary) {
+    return (
+      <div className="grid grid-cols-2 gap-2 mb-4">
+        {[...Array(4)].map((_, i) => (
+          <div key={i} className="bg-zinc-900 p-3 animate-pulse">
+            <div className="h-2.5 w-16 bg-zinc-800 rounded-sm mb-2" />
+            <div className="h-6 w-10 bg-zinc-800 rounded-sm" />
+          </div>
+        ))}
+      </div>
+    );
+  }
 
   const stats = [
     { label: "Enterprise ARR", value: formatARR(summary.enterpriseARR) },

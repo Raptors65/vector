@@ -11,7 +11,22 @@ function formatARR(arr: number): string {
 export function SignalFeed() {
   const signals = useQuery(api.signals.list);
 
-  if (!signals) return null;
+  if (!signals) {
+    return (
+      <div className="flex flex-col gap-2">
+        {[...Array(6)].map((_, i) => (
+          <div key={i} className="p-3 border border-zinc-800 animate-pulse">
+            <div className="flex justify-between mb-2">
+              <div className="h-2.5 w-24 bg-zinc-800 rounded-sm" />
+              <div className="h-2.5 w-10 bg-zinc-800 rounded-sm" />
+            </div>
+            <div className="h-2.5 w-full bg-zinc-800 rounded-sm mb-1.5" />
+            <div className="h-2.5 w-3/4 bg-zinc-800 rounded-sm" />
+          </div>
+        ))}
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col gap-2">

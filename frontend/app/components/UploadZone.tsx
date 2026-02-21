@@ -222,16 +222,15 @@ export function UploadZone() {
         {fileSlots.map(({ key, label }) => (
           <div
             key={key}
-            className={`flex-1 rounded-none px-3 py-2 text-center text-xs font-mono transition-colors ${
+            className={`flex-1 rounded-none px-3 py-2.5 text-center text-xs font-mono transition-colors flex flex-col items-center gap-0.5 ${
               parsed[key]
                 ? "bg-zinc-800 text-white"
                 : "bg-zinc-950 text-zinc-600 border border-zinc-800"
             }`}
           >
-            {parsed[key] ? "✓ " : ""}
-            {label}
+            <span>{label}</span>
             {parsed[key] && (
-              <span className="text-zinc-500 ml-1">({parsed[key]!.length})</span>
+              <span className="text-zinc-400">✓ {parsed[key]!.length} rows</span>
             )}
           </div>
         ))}
