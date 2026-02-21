@@ -8,13 +8,29 @@
  * @module
  */
 
+import type * as analyses from "../analyses.js";
+import type * as customers from "../customers.js";
+import type * as marketEvidence from "../marketEvidence.js";
+import type * as seed from "../seed.js";
+import type * as signals from "../signals.js";
+import type * as upload from "../upload.js";
+import type * as usageMetrics from "../usageMetrics.js";
+
 import type {
   ApiFromModules,
   FilterApi,
   FunctionReference,
 } from "convex/server";
 
-declare const fullApi: ApiFromModules<{}>;
+declare const fullApi: ApiFromModules<{
+  analyses: typeof analyses;
+  customers: typeof customers;
+  marketEvidence: typeof marketEvidence;
+  seed: typeof seed;
+  signals: typeof signals;
+  upload: typeof upload;
+  usageMetrics: typeof usageMetrics;
+}>;
 
 /**
  * A utility for referencing Convex functions in your app's public API.

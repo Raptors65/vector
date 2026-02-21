@@ -29,9 +29,16 @@ export default defineSchema({
   }),
 
   analyses: defineTable({
-    themes: v.any(),
-    revenue_exposure: v.any(),
-    recommendation: v.string(),
-    spec: v.any(),
+    status: v.union(
+      v.literal("idle"),
+      v.literal("extracting"),
+      v.literal("researching"),
+      v.literal("generating"),
+      v.literal("complete")
+    ),
+    themes: v.optional(v.any()),
+    revenue_exposure: v.optional(v.any()),
+    recommendation: v.optional(v.string()),
+    spec: v.optional(v.any()),
   }),
 });
