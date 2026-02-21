@@ -165,7 +165,7 @@ type Phase = "idle" | "running" | "done" | "content";
 
 // ── main panel ───────────────────────────────────────────────────────────────
 
-export function CenterPanel() {
+export function CenterPanel({ onOpenGitHubSettings }: { onOpenGitHubSettings: () => void }) {
   const analysis = useQuery(api.analyses.getLatest);
   const evidence = useQuery(api.marketEvidence.list);
   const runAnalysis = useAction(api.analysis.runAnalysis);
@@ -273,7 +273,11 @@ export function CenterPanel() {
             )}
 
             {isComplete && analysis.spec && (
-              <SpecPreview spec={analysis.spec as unknown as Spec} />
+              <SpecPreview
+                spec={analysis.spec as unknown as Spec}
+                arrAtRisk={arrAtRisk}
+                onOpenGitHubSettings={onOpenGitHubSettings}
+              />
             )}
 
             {phase === "idle" && !triggering && (

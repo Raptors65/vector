@@ -183,6 +183,7 @@ export function UploadZone({ onSuccess }: { onSuccess?: () => void } = {}) {
     { name: "Intercom", description: "Support tickets · NPS", domain: "intercom.com" },
     { name: "Gong", description: "Call transcripts · deal signals", domain: "gong.io" },
     { name: "Stripe", description: "Cancellations · billing events", domain: "stripe.com" },
+    { name: "G2", description: "Public reviews · competitor signals", domain: "g2.com" },
   ];
 
   return (

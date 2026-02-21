@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { GitHubExportButton } from "@/app/components/GitHubExportButton";
 
 type SchemaChange = { table: string; description: string; fields: string[] };
 type ApiEndpoint = { method: string; path: string; description: string };
@@ -53,7 +54,15 @@ function parseTaskGraph(raw: Spec["task_graph"] | string): Epic[] {
   return raw ?? [];
 }
 
-export function SpecPreview({ spec }: { spec: Spec }) {
+export function SpecPreview({
+  spec,
+  arrAtRisk,
+  onOpenGitHubSettings,
+}: {
+  spec: Spec;
+  arrAtRisk?: number;
+  onOpenGitHubSettings: () => void;
+}) {
   const taskGraph = parseTaskGraph(spec.task_graph as Spec["task_graph"] | string);
 
   return (
@@ -116,6 +125,14 @@ export function SpecPreview({ spec }: { spec: Spec }) {
             </p>
           ))}
         </Section>
+      </div>
+
+      <div className="mt-3">
+        <GitHubExportButton
+          spec={spec}
+          arrAtRisk={arrAtRisk}
+          onOpenSettings={onOpenGitHubSettings}
+        />
       </div>
     </div>
   );
