@@ -230,7 +230,7 @@ export function CenterPanel() {
     <div className="flex flex-col h-full">
       {/* Non-scrollable header area — has horizontal padding */}
       <div className="px-4 pt-4 flex flex-col gap-3 shrink-0">
-        <div className="flex items-center justify-between">
+        <div className="flex items-start justify-between">
           <p className="text-xs font-medium text-zinc-500 uppercase tracking-wider">
             Strategic Core
           </p>

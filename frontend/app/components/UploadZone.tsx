@@ -178,62 +178,99 @@ export function UploadZone() {
     { key: "usage" as const, label: "usage.csv" },
   ];
 
+  const integrations = [
+    { name: "Salesforce", description: "Churn reasons · CRM data", domain: "salesforce.com" },
+    { name: "Intercom", description: "Support tickets · NPS", domain: "intercom.com" },
+    { name: "Gong", description: "Call transcripts · deal signals", domain: "gong.io" },
+    { name: "Stripe", description: "Cancellations · billing events", domain: "stripe.com" },
+  ];
+
   return (
-    <div className="flex flex-col items-center gap-6 w-full max-w-md">
+    <div className="flex flex-col items-center gap-8 w-full max-w-md">
       <div className="text-center">
-        <h1 className="text-2xl font-semibold text-white tracking-tight">Vector</h1>
+        <h1 className="text-2xl font-semibold text-white tracking-tight">Connect your data</h1>
         <p className="text-zinc-500 mt-1 text-sm">
-          Drop your product data to begin analysis
+          Integrate your existing tools or upload a CSV to begin
         </p>
       </div>
 
-      <div
-        onDragOver={(e) => {
-          e.preventDefault();
-          setIsDragging(true);
-        }}
-        onDragLeave={() => setIsDragging(false)}
-        onDrop={handleDrop}
-        onClick={() => inputRef.current?.click()}
-        className={`w-full border-2 border-dashed rounded-none p-10 text-center cursor-pointer transition-colors ${
-          isDragging
-            ? "border-white bg-zinc-900"
-            : "border-zinc-700 hover:border-zinc-500 bg-zinc-950"
-        }`}
-      >
-        <input
-          ref={inputRef}
-          type="file"
-          accept=".csv"
-          multiple
-          className="hidden"
-          onChange={handleFileInput}
-        />
-        <p className="text-zinc-400 text-sm">
-          Drop{" "}
-          <span className="text-white font-mono text-xs">customers.csv</span>,{" "}
-          <span className="text-white font-mono text-xs">tickets.csv</span>, and{" "}
-          <span className="text-white font-mono text-xs">usage.csv</span>
-        </p>
-        <p className="text-zinc-600 text-xs mt-2">or click to browse</p>
-      </div>
-
-      <div className="flex gap-2 w-full">
-        {fileSlots.map(({ key, label }) => (
-          <div
-            key={key}
-            className={`flex-1 rounded-none px-3 py-2.5 text-center text-xs font-mono transition-colors flex flex-col items-center gap-0.5 ${
-              parsed[key]
-                ? "bg-zinc-800 text-white"
-                : "bg-zinc-950 text-zinc-600 border border-zinc-800"
-            }`}
+      {/* Integration cards */}
+      <div className="w-full flex flex-col gap-px">
+        {integrations.map((integration) => (
+          <button
+            key={integration.name}
+            disabled
+            className="w-full flex items-center gap-3 px-4 py-3 bg-zinc-900 border border-zinc-800 text-left opacity-50 cursor-not-allowed"
           >
-            <span>{label}</span>
-            {parsed[key] && (
-              <span className="text-zinc-400">✓ {parsed[key]!.length} rows</span>
-            )}
-          </div>
+            <img
+              src={`https://www.google.com/s2/favicons?domain=${integration.domain}&sz=32`}
+              alt={integration.name}
+              className="w-4 h-4 shrink-0"
+            />
+            <span className="text-white text-xs font-medium w-20 shrink-0">{integration.name}</span>
+            <span className="text-zinc-500 text-xs">{integration.description}</span>
+          </button>
         ))}
+      </div>
+
+      {/* CSV fallback */}
+      <div className="w-full">
+        <div className="flex items-center gap-3 mb-3">
+          <div className="flex-1 h-px bg-zinc-800" />
+          <span className="text-zinc-600 text-xs">or upload CSV</span>
+          <div className="flex-1 h-px bg-zinc-800" />
+        </div>
+
+        <div
+          onDragOver={(e) => {
+            e.preventDefault();
+            setIsDragging(true);
+          }}
+          onDragLeave={() => setIsDragging(false)}
+          onDrop={handleDrop}
+          onClick={() => inputRef.current?.click()}
+          className={`w-full border border-dashed p-6 text-center cursor-pointer transition-colors ${
+            isDragging
+              ? "border-white bg-zinc-900"
+              : "border-zinc-700 hover:border-zinc-500 bg-zinc-950"
+          }`}
+        >
+          <input
+            ref={inputRef}
+            type="file"
+            accept=".csv"
+            multiple
+            className="hidden"
+            onChange={handleFileInput}
+          />
+          <p className="text-zinc-400 text-sm">
+            Drop{" "}
+            <span className="text-white font-mono text-xs">customers.csv</span>,{" "}
+            <span className="text-white font-mono text-xs">tickets.csv</span>, and{" "}
+            <span className="text-white font-mono text-xs">usage.csv</span>
+          </p>
+          <p className="text-zinc-600 text-xs mt-1.5">or click to browse</p>
+        </div>
+
+        {(parsed.customers || parsed.tickets || parsed.usage) && (
+          <div className="flex gap-2 mt-3">
+            {fileSlots.map(({ key, label }) => (
+              <div
+                key={key}
+                className={`flex-1 px-3 py-2.5 text-center text-xs font-mono transition-colors flex flex-col items-center gap-0.5 ${
+                  parsed[key]
+                    ? "bg-zinc-800 text-white"
+                    : "bg-zinc-950 text-zinc-600 border border-zinc-800"
+                }`}
+              >
+                <span>{label}</span>
+                {parsed[key] && (
+                  <span className="text-zinc-400">✓ {parsed[key]!.length} rows</span>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {error && <p className="text-red-400 text-sm text-center">{error}</p>}
@@ -241,7 +278,7 @@ export function UploadZone() {
       <button
         onClick={handleUpload}
         disabled={!allLoaded || status === "uploading"}
-        className="w-full py-3 rounded-none font-medium text-sm transition-colors bg-white text-black hover:bg-zinc-200 disabled:opacity-30 disabled:cursor-not-allowed"
+        className="w-full py-3 font-medium text-sm transition-colors bg-white text-black hover:bg-zinc-200 disabled:opacity-30 disabled:cursor-not-allowed"
       >
         {status === "uploading" ? "Uploading..." : "Load Data"}
       </button>

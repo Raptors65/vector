@@ -41,9 +41,16 @@ export function SignalFeed() {
         >
           <div className="flex items-center justify-between mb-1">
             <div className="flex items-center gap-1.5">
-              <span className="text-xs">
-                {signal.type === "churn" ? "⚠" : "🎫"}
-              </span>
+              <span
+                className={`inline-block w-1.5 h-1.5 shrink-0 ${
+                  signal.type === "churn" ? "bg-red-400" : "bg-zinc-500"
+                }`}
+              />
+              {signal.type === "ticket" && (
+                <span className="text-xs font-mono font-bold text-zinc-500">
+                  SIGNAL
+                </span>
+              )}
               {signal.company && (
                 <span className="text-white text-xs font-medium">
                   {signal.company}
