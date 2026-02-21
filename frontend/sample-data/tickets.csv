@@ -1,0 +1,21 @@
+id,customer_id,arr,issue
+1,3,200000,We need SAML SSO to pass our annual vendor security review — this is blocking our renewal decision
+2,5,150000,Our IT team won't approve a company-wide rollout without SSO support
+3,8,110000,SSO integration with Okta is the single feature holding back our expansion from 40 to 120 seats
+4,9,140000,Can you share your SSO roadmap? It comes up every time we review tools with procurement
+5,11,160000,We're being asked to evaluate Monday.com specifically because they have SSO — please advise
+6,3,200000,Follow-up on SSO: our security team needs a timeline or we will have to escalate
+7,5,150000,Is there an SSO beta we can join? We've been waiting 6 months
+8,8,110000,Our CISO flagged the lack of SSO in our last audit — need a resolution path
+9,4,95000,We churned but would come back if SSO shipped — please notify us when it's available
+10,12,80000,SSO was the dealbreaker for us — Okta and Azure AD support are table stakes at our size
+11,13,18000,The mobile app keeps crashing on Android — our field reps can't use it reliably
+12,16,12000,When is the mobile app getting a refresh? It feels dated compared to competitors
+13,18,16000,We switched to Asana partly because their mobile experience is much better
+14,19,8000,Feature request: dark mode on mobile
+15,2,85000,We churned due to SSO but our contract is up for renewal — has anything changed on that front?
+16,6,75000,No update on SAML after 3 support tickets — escalating to account manager
+17,20,17000,Overall happy but would love better integrations with Slack
+18,21,9000,Pricing is too high for a 5-person team — is there a startup plan?
+19,11,160000,Competitor demo showed native SSO with Google Workspace — we need feature parity
+20,7,65000,SSO blockers have not been resolved — we are moving to a competitor at renewal

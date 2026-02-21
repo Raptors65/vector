@@ -1,0 +1,23 @@
+id,company,segment,arr,churned,churn_reason
+1,Acme Corp,Enterprise,120000,true,No SSO — IT blocked rollout
+2,Globex Inc,Enterprise,85000,true,Couldn't get security approval without SAML SSO
+3,Initech,Enterprise,200000,false,SSO is our #1 blocker before we can expand seats
+4,Umbrella Corp,Enterprise,95000,true,Security team requires SSO for vendor approval
+5,Massive Dynamic,Enterprise,150000,false,Waiting on SSO before rolling out to full org
+6,Soylent Corp,Enterprise,75000,true,No SAML support — lost IT sign-off
+7,Cyberdyne Systems,Enterprise,65000,true,SSO was a hard requirement we couldn't work around
+8,Oscorp,Enterprise,110000,false,Would double seats if SSO shipped
+9,Wayne Enterprises,Enterprise,140000,false,SSO on our requirements list for renewal
+10,Weyland Corp,Enterprise,90000,true,Failed security audit due to missing SSO
+11,Stark Industries,Enterprise,160000,false,Evaluating competitors who have SSO
+12,Prentice Corp,Enterprise,80000,true,IT refused to approve without single sign-on
+13,Pied Piper,SMB,18000,true,Mobile app is too limited for our field team
+14,Hooli,SMB,22000,false,
+15,Raviga Capital,SMB,15000,true,Switched to a cheaper competitor
+16,Bachmanity,SMB,12000,false,
+17,Aviato,SMB,11000,false,
+18,Intersite,SMB,16000,true,Competitor had better mobile experience
+19,Goolsby,SMB,8000,false,
+20,Signifigant,SMB,20000,false,
+21,Code Rag,SMB,9000,true,Too expensive for our team size
+22,EndFrame,SMB,17000,false,
