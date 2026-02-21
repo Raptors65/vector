@@ -2,62 +2,11 @@
 
 import { useQuery, useAction } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { SpecPreview } from "./SpecPreview";
 import type { Spec } from "./SpecPreview";
+import { AnalysisAnimation } from "./AnalysisAnimation";
 
-// --- Status pipeline ---
-// "researching" and "generating" both map to step 1 since revenue
-// computation is synchronous and too fast to show as its own step.
-
-const VISIBLE_STEPS = [
-  { label: "Extracting themes" },
-  { label: "Generating spec" },
-  { label: "Complete" },
-];
-
-function getStepIndex(status: string): number {
-  if (status === "extracting") return 0;
-  if (status === "researching" || status === "generating") return 1;
-  return 2;
-}
-
-function StatusLine({ status }: { status: string }) {
-  const idx = getStepIndex(status);
-  return (
-    <div className="flex items-center flex-wrap gap-1 shrink-0">
-      {VISIBLE_STEPS.map((step, i) => {
-        const done = i < idx;
-        const active = i === idx;
-        return (
-          <div key={i} className="flex items-center gap-1">
-            <div className="flex items-center gap-1.5 border border-zinc-800 bg-zinc-900/60 px-2.5 py-1.5">
-              <span
-                className={`inline-block w-1.5 h-1.5 rounded-full ${
-                  done
-                    ? "bg-zinc-600"
-                    : active
-                      ? "bg-white animate-pulse"
-                      : "bg-zinc-800"
-                }`}
-              />
-              <span
-                className={`text-xs ${
-                  done ? "text-zinc-600" : active ? "text-white" : "text-zinc-700"
-                }`}
-              >
-                {step.label}
-              </span>
-            </div>
-            {i < VISIBLE_STEPS.length - 1 && (
-              <span className="text-zinc-800 text-xs">›</span>
-            )}
-          </div>
-        );
-      })}
-    </div>
-  );
-}
 
 // --- Recommendation banner ---
 
@@ -206,11 +155,49 @@ function EvidenceSection({ evidence }: { evidence: EvidenceDoc[] }) {
 
 // --- Main panel ---
 
+// ── phase management ─────────────────────────────────────────────────────────
+// "idle"    → no analysis, show empty state
+// "running" → analysis in progress, show animation
+// "done"    → just completed, hold animation on "complete" state briefly
+// "content" → show normal results
+
+type Phase = "idle" | "running" | "done" | "content";
+
+// ── main panel ───────────────────────────────────────────────────────────────
+
 export function CenterPanel() {
   const analysis = useQuery(api.analyses.getLatest);
   const evidence = useQuery(api.marketEvidence.list);
   const runAnalysis = useAction(api.analysis.runAnalysis);
   const [triggering, setTriggering] = useState(false);
+  const [phase, setPhase] = useState<Phase>("idle");
+  const phaseRef = useRef<Phase>("idle");
+
+  const setPhaseSync = (p: Phase) => {
+    phaseRef.current = p;
+    setPhase(p);
+  };
+
+  const isRunning = analysis?.status !== undefined && analysis.status !== "complete";
+  const isComplete = analysis?.status === "complete";
+  const busy = triggering || isRunning;
+
+  // Drive phase from analysis status
+  useEffect(() => {
+    if (isRunning) {
+      setPhaseSync("running");
+    } else if (isComplete) {
+      if (phaseRef.current === "running") {
+        // Just finished — hold animation on "complete" state for 2s then reveal content
+        setPhaseSync("done");
+        const t = setTimeout(() => setPhaseSync("content"), 2000);
+        return () => clearTimeout(t);
+      } else if (phaseRef.current === "idle") {
+        // Page loaded with existing completed analysis — skip animation
+        setPhaseSync("content");
+      }
+    }
+  }, [isRunning, isComplete]);
 
   const handleRun = async () => {
     setTriggering(true);
@@ -221,66 +208,82 @@ export function CenterPanel() {
     }
   };
 
-  const isRunning =
-    analysis?.status !== undefined && analysis.status !== "complete";
-  const isComplete = analysis?.status === "complete";
-  const busy = triggering || isRunning;
+  // Data for animation
+  const themes = Array.isArray(analysis?.themes) ? (analysis.themes as Theme[]) : [];
+  const topTheme = themes[0]?.name;
+  const rev = analysis?.revenue_exposure as { arr_at_risk?: number } | undefined;
+  const arrAtRisk = rev?.arr_at_risk;
+
+  const showAnimation = phase === "running" || phase === "done";
+  const showContent = phase === "content";
 
   return (
     <div className="flex flex-col h-full">
-      {/* Non-scrollable header area — has horizontal padding */}
-      <div className="px-4 pt-4 flex flex-col gap-3 shrink-0">
-        <div className="flex items-start justify-between">
-          <p className="text-xs font-medium text-zinc-500 uppercase tracking-wider">
-            Strategic Core
-          </p>
-          <button
-            onClick={handleRun}
-            disabled={busy}
-            className="px-4 py-1.5 text-xs font-medium bg-white text-black hover:bg-zinc-200 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-          >
-            {busy
-              ? "Running…"
-              : isComplete
-                ? "Re-run Analysis"
-                : "Run Analysis"}
-          </button>
-        </div>
-
-        {isRunning && <StatusLine status={analysis!.status} />}
-
-        {/* Spacer below header */}
-        <div />
+      {/* Header */}
+      <div className="px-4 pt-4 pb-3 shrink-0 flex items-start justify-between">
+        <p className="text-xs font-medium text-zinc-500 uppercase tracking-wider">
+          Strategic Core
+        </p>
+        <button
+          onClick={handleRun}
+          disabled={busy}
+          className="px-4 py-1.5 text-xs font-medium bg-white text-black hover:bg-zinc-200 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+        >
+          {busy ? "Running…" : isComplete ? "Re-run Analysis" : "Run Analysis"}
+        </button>
       </div>
 
-      {/* Scrollable content — no right padding so scrollbar sits at border edge */}
-      <div className="flex-1 overflow-y-auto panel-scroll min-h-0">
-        <div className="px-4 pb-4 flex flex-col gap-5">
-          {isComplete && analysis.recommendation && (
-            <RecommendationBanner text={analysis.recommendation} />
-          )}
+      {/* Content area — animation and results share the same space */}
+      <div className="flex-1 min-h-0 relative overflow-hidden">
 
-          {isComplete &&
-            Array.isArray(analysis.themes) &&
-            analysis.themes.length > 0 && (
-              <ThemeTable themes={analysis.themes as Theme[]} />
+        {/* Animation layer */}
+        <div
+          className={`absolute inset-0 transition-opacity duration-700 ${
+            showAnimation ? "opacity-100" : "opacity-0 pointer-events-none"
+          }`}
+        >
+          {(showAnimation || phase === "done") && (
+            <AnalysisAnimation
+              status={analysis?.status ?? "extracting"}
+              topTheme={topTheme}
+              arrAtRisk={arrAtRisk}
+              recommendation={analysis?.recommendation ?? undefined}
+            />
+          )}
+        </div>
+
+        {/* Results layer */}
+        <div
+          className={`h-full overflow-y-auto panel-scroll transition-opacity duration-700 ${
+            showContent ? "opacity-100" : "opacity-0 pointer-events-none"
+          }`}
+        >
+          <div className="px-4 pb-4 flex flex-col gap-5">
+            {isComplete && analysis.recommendation && (
+              <RecommendationBanner text={analysis.recommendation} />
             )}
 
-          {isComplete && evidence && evidence.length > 0 && (
-            <EvidenceSection evidence={evidence as EvidenceDoc[]} />
-          )}
+            {isComplete &&
+              themes.length > 0 && (
+                <ThemeTable themes={themes} />
+              )}
 
-          {isComplete && analysis.spec && (
-            <SpecPreview spec={analysis.spec as unknown as Spec} />
-          )}
+            {isComplete && evidence && evidence.length > 0 && (
+              <EvidenceSection evidence={evidence as EvidenceDoc[]} />
+            )}
 
-          {!analysis && !triggering && (
-            <div className="h-64 flex items-center justify-center">
-              <p className="text-zinc-700 text-sm">
-                Press Run Analysis to begin
-              </p>
-            </div>
-          )}
+            {isComplete && analysis.spec && (
+              <SpecPreview spec={analysis.spec as unknown as Spec} />
+            )}
+
+            {phase === "idle" && !triggering && (
+              <div className="h-64 flex items-center justify-center">
+                <p className="text-zinc-700 text-sm">
+                  Press Run Analysis to begin
+                </p>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>

@@ -110,7 +110,7 @@ function identifyFile(text: string): "customers" | "tickets" | "usage" | null {
 
 // --- Component ---
 
-export function UploadZone() {
+export function UploadZone({ onSuccess }: { onSuccess?: () => void } = {}) {
   const [isDragging, setIsDragging] = useState(false);
   const [parsed, setParsed] = useState<ParsedFiles>({});
   const [status, setStatus] = useState<"idle" | "uploading" | "error">("idle");
@@ -163,7 +163,7 @@ export function UploadZone() {
         tickets: parsed.tickets,
         usageMetrics: parsed.usage,
       });
-      // page.tsx reacts to Convex data change automatically — no redirect needed
+      onSuccess?.();
     } catch (e) {
       setStatus("error");
       setError(e instanceof Error ? e.message : "Upload failed");
