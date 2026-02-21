@@ -195,7 +195,7 @@ export function UploadZone() {
         onDragLeave={() => setIsDragging(false)}
         onDrop={handleDrop}
         onClick={() => inputRef.current?.click()}
-        className={`w-full border-2 border-dashed rounded-xl p-10 text-center cursor-pointer transition-colors ${
+        className={`w-full border-2 border-dashed rounded-none p-10 text-center cursor-pointer transition-colors ${
           isDragging
             ? "border-white bg-zinc-900"
             : "border-zinc-700 hover:border-zinc-500 bg-zinc-950"
@@ -222,7 +222,7 @@ export function UploadZone() {
         {fileSlots.map(({ key, label }) => (
           <div
             key={key}
-            className={`flex-1 rounded-lg px-3 py-2 text-center text-xs font-mono transition-colors ${
+            className={`flex-1 rounded-none px-3 py-2 text-center text-xs font-mono transition-colors ${
               parsed[key]
                 ? "bg-zinc-800 text-white"
                 : "bg-zinc-950 text-zinc-600 border border-zinc-800"
@@ -242,7 +242,7 @@ export function UploadZone() {
       <button
         onClick={handleUpload}
         disabled={!allLoaded || status === "uploading"}
-        className="w-full py-3 rounded-xl font-medium text-sm transition-colors bg-white text-black hover:bg-zinc-200 disabled:opacity-30 disabled:cursor-not-allowed"
+        className="w-full py-3 rounded-none font-medium text-sm transition-colors bg-white text-black hover:bg-zinc-200 disabled:opacity-30 disabled:cursor-not-allowed"
       >
         {status === "uploading" ? "Uploading..." : "Load Data"}
       </button>

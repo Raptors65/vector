@@ -9,6 +9,7 @@
  */
 
 import type * as analyses from "../analyses.js";
+import type * as analysis from "../analysis.js";
 import type * as customers from "../customers.js";
 import type * as marketEvidence from "../marketEvidence.js";
 import type * as seed from "../seed.js";
@@ -24,6 +25,7 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   analyses: typeof analyses;
+  analysis: typeof analysis;
   customers: typeof customers;
   marketEvidence: typeof marketEvidence;
   seed: typeof seed;
