@@ -1,5 +1,7 @@
 # Vector
 
+![Vector dashboard](assets/example-screen.png)
+
 **Autonomous Product Strategy Engine** — upload your customer data, run an AI analysis, and get a prioritized build recommendation backed by revenue impact and market evidence.
 
 > The demo runs as **Meridian** — a fictional Series A project management SaaS for engineering teams. See [`plans/demo-company.md`](plans/demo-company.md) for the full company brief.
@@ -8,7 +10,7 @@
 
 ## What it does
 
-Vector ingests three signal sources — churned customer records, support tickets, and web signals from Reddit/HN/G2 — and runs a multi-step AI pipeline to answer: *what should we build next, and why?*
+Vector ingests three signal sources — churned customer records, support tickets, and web signals from Reddit/HN/G2 — and runs a multi-step AI pipeline to answer: _what should we build next, and why?_
 
 1. **Extracts themes** from churn reasons, ticket text, and usage gaps, weighted by ARR
 2. **Computes revenue exposure** — how much ARR is at risk, and how much could be recovered
@@ -21,13 +23,13 @@ Results are shown in a live war-room dashboard with three panels: signal feed (c
 
 ## Tech stack
 
-| Layer | Technology |
-|---|---|
-| Frontend | Next.js, React 19, Tailwind CSS v4 |
-| Backend / DB | [Convex](https://convex.dev) (reactive database + serverless actions) |
-| LLM | [MiniMax](https://api.minimax.io) via Anthropic-compatible API (`MiniMax-M2.5`) |
-| Market research | [rtrvr.ai](https://rtrvr.ai) (web agent for sourcing real-world evidence) |
-| UI components | shadcn/ui, Radix UI |
+| Layer           | Technology                                                                      |
+| --------------- | ------------------------------------------------------------------------------- |
+| Frontend        | Next.js, React 19, Tailwind CSS v4                                              |
+| Backend / DB    | [Convex](https://convex.dev) (reactive database + serverless actions)           |
+| LLM             | [MiniMax](https://api.minimax.io) via Anthropic-compatible API (`MiniMax-M2.5`) |
+| Market research | [rtrvr.ai](https://rtrvr.ai) (web agent for sourcing real-world evidence)       |
+| UI components   | shadcn/ui, Radix UI                                                             |
 
 ---
 
@@ -98,11 +100,11 @@ Open [http://localhost:3000](http://localhost:3000).
 
 On first load you'll see the data upload screen. Drop three CSV files:
 
-| File | Required columns |
-|---|---|
+| File            | Required columns                                                                     |
+| --------------- | ------------------------------------------------------------------------------------ |
 | `customers.csv` | `company`, `segment` (Enterprise/SMB), `arr`, `churned` (true/false), `churn_reason` |
-| `tickets.csv` | `arr`, `issue` |
-| `usage.csv` | `feature`, `enterprise_adoption` (%), `smb_adoption` (%) |
+| `tickets.csv`   | `arr`, `issue`                                                                       |
+| `usage.csv`     | `feature`, `enterprise_adoption` (%), `smb_adoption` (%)                             |
 
 Click **Load Data** to ingest. The war room appears automatically once data is loaded.
 
