@@ -1,6 +1,7 @@
 import { action } from "./_generated/server";
 import { api } from "./_generated/api";
 import { v } from "convex/values";
+import type { Id } from "./_generated/dataModel";
 
 const MINIMAX_BASE_URL = "https://api.minimax.io/anthropic/v1/messages";
 const MODEL = "MiniMax-M2.5";
@@ -187,12 +188,12 @@ export const refreshEvidence = action({
 
 export const runAnalysis = action({
   args: {},
-  handler: async (ctx) => {
+  handler: async (ctx): Promise<Id<"analyses">> => {
     const apiKey = process.env.MINIMAX_API_KEY;
     if (!apiKey) throw new Error("MINIMAX_API_KEY not set");
 
     // 1. Create analysis document
-    const analysisId = await ctx.runMutation(api.analyses.create, {
+    const analysisId: Id<"analyses"> = await ctx.runMutation(api.analyses.create, {
       status: "extracting",
     });
 
@@ -203,18 +204,18 @@ export const runAnalysis = action({
 
     // 3. Build context strings
     const churnContext = customers
-      .filter((c) => c.churned && c.churn_reason)
-      .map((c) => `- ${c.company} (${c.segment}, $${c.arr}): "${c.churn_reason}"`)
+      .filter((c: { churned: boolean; churn_reason?: string }) => c.churned && c.churn_reason)
+      .map((c: { company: string; segment: string; arr: number; churn_reason?: string }) => `- ${c.company} (${c.segment}, $${c.arr}): "${c.churn_reason}"`)
       .join("\n");
 
     const ticketContext = signals
-      .filter((s) => s.type === "ticket")
+      .filter((s: { type: string }) => s.type === "ticket")
       .slice(0, 15)
-      .map((t) => `- $${t.arr}: "${t.text}"`)
+      .map((t: { arr: number | null; text: string }) => `- $${t.arr}: "${t.text}"`)
       .join("\n");
 
     const usageContext = usageMetrics
-      .map((m) => `- ${m.feature_name}: Enterprise ${m.enterprise_adoption}%, SMB ${m.smb_adoption}%`)
+      .map((m: { feature_name: string; enterprise_adoption: number; smb_adoption: number }) => `- ${m.feature_name}: Enterprise ${m.enterprise_adoption}%, SMB ${m.smb_adoption}%`)
       .join("\n");
 
     // 4. Theme extraction

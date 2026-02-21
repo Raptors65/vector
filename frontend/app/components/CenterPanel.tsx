@@ -242,7 +242,7 @@ export function CenterPanel({ onOpenGitHubSettings }: { onOpenGitHubSettings: ()
             showAnimation ? "opacity-100" : "opacity-0 pointer-events-none"
           }`}
         >
-          {(showAnimation || phase === "done") && (
+          {showAnimation && (
             <AnalysisAnimation
               status={analysis?.status ?? "extracting"}
               topTheme={topTheme}
