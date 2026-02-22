@@ -241,7 +241,7 @@ export function AnalysisAnimation({ status, topTheme, arrAtRisk, recommendation 
 
           let alpha: number;
           if (cell.resolved) {
-            alpha = brightSet.has(r * grid.cols + c) ? 0.88 : 0.15;
+            alpha = brightSet.has(r * grid.cols + c) ? 0.88 : 0.5;
           } else {
             alpha = 0.09 + (Math.random() > 0.97 ? 0.06 : 0);
           }
